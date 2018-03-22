@@ -1,0 +1,16 @@
+{
+  "database-name" : "%%DATABASE%%",
+  "triggers-database": "%%TRIGGERS_DATABASE%%",
+  "schema-database": "%%SCHEMAS_DATABASE%%",
+  "collection-lexicon": true,
+  "fast-reverse-searches": true,
+  "triple-index": true,
+  "range-element-index" : [ {
+    "scalar-type" : "string",
+    "namespace-uri" : "CHANGEME",
+    "localname" : "CHANGEME",
+    "collation" : "http://marklogic.com/collation/",
+    "range-value-positions" : false,
+    "invalid-values" : "reject"
+  } ]
+}

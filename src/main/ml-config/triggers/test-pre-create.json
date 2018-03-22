@@ -1,0 +1,21 @@
+{
+  "name": "test-pre-create",
+  "description": "Trigger for pre commit test",
+  "event": {
+    "data-event": {
+      "collection-scope": {
+        "uri": "data/Pre"
+      },
+      "document-content": {
+        "update-kind": "create"
+      },
+      "when": "pre-commit"
+    }
+  },
+  "module": "/triggers/pre-test.sjs",
+  "module-db": "%%MODULES_DATABASE%%",
+  "module-root": "/",
+  "enabled": true,
+  "recursive": false,
+  "task-priority": "normal"
+}

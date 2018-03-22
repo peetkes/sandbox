@@ -1,0 +1,21 @@
+{
+  "name": "test-post-create",
+  "description": "Trigger for post commit test",
+  "event": {
+    "data-event": {
+      "collection-scope": {
+        "uri": "data/Post"
+      },
+      "document-content": {
+        "update-kind": "create"
+      },
+      "when": "post-commit"
+    }
+  },
+  "module": "/triggers/post-test.sjs",
+  "module-db": "%%MODULES_DATABASE%%",
+  "module-root": "/",
+  "enabled": true,
+  "recursive": false,
+  "task-priority": "normal"
+}

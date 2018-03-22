@@ -1,0 +1,13 @@
+plugins {
+  id "net.saliman.properties" version "1.4.6"
+  id "com.marklogic.ml-gradle" version "3.3.0"
+}
+
+task restartCluster(type: com.marklogic.gradle.task.MarkLogicTask) {
+    logger.info("Restart cluster")
+    doLast{
+		getManageClient().postJson("/manage/v2/", '{ "operation": "restart-local-cluster" }') 
+    }
+}
+
+mlPostDeploy.dependsOn restartCluster
