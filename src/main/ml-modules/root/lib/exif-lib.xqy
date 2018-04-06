@@ -1,6 +1,12 @@
 xquery version "1.0-ml";
-
-module namespace exif = "http://marklogic.com/exif";
+(:~
+ : This library is based on the work of miguelrgonzalez
+ : The original gist can beund here: https://gist.github.com/miguelrgonzalez/d8daf7e3840f20b8dcee
+ : ToDo:
+ :  Handle rational value,
+ :      rational is build up of a 4 byte numerator and a 4 byte denominator in teh form of numerator/denominator
+ :)
+module namespace exif = "http://marklogic.com/exif-parser";
 
 import module namespace exif-consts = "http://marklogic.com/exif/consts" at "/lib/exif-consts.xqy";
 
