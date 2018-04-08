@@ -25,6 +25,45 @@ declare function exif:endianness(
         return binary {xs:hexBinary(fn:string-join($result, ''))}
 };
 
+declare function exif:fetch-short-or-long(
+        $byte-order as xs:string,
+        $count as xs:integer,
+        $size as xs:integer,
+        $binary as binary()
+) as item()?
+{
+    let $short :=
+        for $i in (1 to $count)
+        let $value := xdmp:hex-to-integer(fn:string(xs:hexBinary(exif:endianness(xdmp:subbinary($binary, 1 + ($i - 1)*$size, $size), $byte-order))))
+        return $value
+    return
+        if ($count > 1)
+        then fn:string-join($short, ";")
+        else $short
+};
+
+declare function exif:fetch-rational(
+        $byte-order as xs:string,
+        $count as xs:integer,
+        $size as xs:integer,
+        $binary as binary()
+) as item()?
+{
+    let $rational :=
+        for $i in (1 to $count)
+        let $rational := binary { xdmp:subbinary($binary, 1 + ($i - 1)*$size, $size) }
+        let $numerator := xdmp:hex-to-integer(fn:string(xs:hexBinary(exif:endianness(xdmp:subbinary($rational, 1, 4), $byte-order))))
+        let $denominator := xdmp:hex-to-integer(fn:string(xs:hexBinary(exif:endianness(xdmp:subbinary($rational, 5, 4), $byte-order))))
+        return
+            if ($denominator > 0)
+            then fn:string($numerator div $denominator)
+            else fn:string(xs:hexBinary($rational))
+    return
+        if ($count > 1)
+        then fn:string-join($rational, ";")
+        else $rational
+};
+
 declare function exif:fetch-value(
         $binary as binary(),
         $byte-order as xs:string,
@@ -34,23 +73,29 @@ declare function exif:fetch-value(
         $offset as binary()
 ) as item()?
 {
-    if ($count * $exif-consts:TYPES/type[@id eq $type]/@size > 4)
-    (: if the value is bigger than 4 bytes will be stored in the data section :)
-    then
-        let $binary := binary { xdmp:subbinary($binary,
-                $start + xdmp:hex-to-integer(fn:string(xs:hexBinary(exif:endianness($offset, $byte-order)))),
-                $count * $exif-consts:TYPES/type[@id eq $type]/@size) }
-        return
-            if (xdmp:binary-size($binary) > 0)
-            then
-                if ($exif-consts:TYPES/type[@id eq  $type and @decode eq 'true'])
-                then xdmp:binary-decode($binary, 'utf8')
-                else xs:string(fn:data($binary))
-            else ''
-    else
-        if ($exif-consts:TYPES/type[@id eq  $type and @decode eq 'true'])
-        then xdmp:binary-decode($offset, 'utf8')
-        else xs:string(fn:data($offset))
+    let $size := $exif-consts:TYPES/type[@id eq $type]/@size
+    return
+        if ($count * $size > 4)
+        (: if the value is bigger than 4 bytes will be stored in the data section :)
+        then
+            let $binary := binary { xdmp:subbinary($binary,
+                    $start + xdmp:hex-to-integer(fn:string(xs:hexBinary(exif:endianness($offset, $byte-order)))),
+                    $count * $size) }
+            return
+                if (xdmp:binary-size($binary) > 0)
+                then
+                    if ($exif-consts:TYPES/type[@id eq  $type and @decode eq 'true'])
+                    then xdmp:binary-decode($binary, 'utf8')
+                    else if ($exif-consts:TYPES/type[@id eq $type] = ("Rational","SRational"))
+                    then exif:fetch-rational($byte-order, $count, $size, $binary)
+                    else xs:string(fn:data($binary))
+                else ''
+        else
+            if ($exif-consts:TYPES/type[@id eq  $type and @decode eq 'true'])
+            then xdmp:binary-decode(exif:endianness($offset, $byte-order), 'utf8')
+            else if ($exif-consts:TYPES/type[@id eq  $type] = ("Short", "Long"))
+            then fetch-short-or-long($byte-order, $count, $size, $offset)
+            else xs:string(fn:data(exif:endianness($offset, $byte-order)))
 };
 
 declare function exif:process-fields(
